@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avalie sua experiência — Mais 1 Café Teresina</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --espresso: #1a0a00;
+    --dark-roast: #2d1200;
+    --coffee: #4a2000;
+    --caramel: #c07030;
+    --gold: #e8a840;
+    --cream: #f5e8d0;
+    --milk: #fdf6ec;
+    --foam: #fff9f0;
+    --red: #c0392b;
+    --green: #2d7d46;
+    --amber: #b8760a;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--espresso);
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px 16px;
+    position: relative; overflow-x: hidden;
+  }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse at 15% 15%, rgba(192,112,48,0.15) 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 85%, rgba(74,32,0,0.5) 0%, transparent 50%);
+    pointer-events:none; z-index:0;
+  }
+
+  .card {
+    position:relative; z-index:1;
+    background: var(--foam);
+    border-radius: 28px;
+    width:100%; max-width:540px;
+    padding: 48px 44px;
+    box-shadow: 0 48px 96px rgba(0,0,0,0.55), 0 0 0 1px rgba(192,112,48,0.18), inset 0 1px 0 rgba(255,255,255,0.9);
+    animation: cardIn 0.7s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  @keyframes cardIn { from{opacity:0;transform:translateY(28px) scale(0.97)} to{opacity:1;transform:none} }
+
+  .logo-area { text-align:center; margin-bottom:32px; }
+  .logo-icon {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:68px; height:68px; background:var(--espresso);
+    border-radius:20px; font-size:30px; margin-bottom:14px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.3);
+    animation: pop 0.5s 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes pop { from{opacity:0;transform:scale(0.4) rotate(-15deg)} to{opacity:1;transform:none} }
+  .brand { font-family:'Playfair Display',serif; font-size:24px; font-weight:900; color:var(--espresso); }
+  .brand span { color:var(--caramel); }
+  .tagline { font-size:11px; color:var(--coffee); letter-spacing:2.5px; text-transform:uppercase; margin-top:5px; opacity:0.65; }
+
+  .divider { display:flex; align-items:center; gap:10px; margin-bottom:28px; }
+  .divider-line { flex:1; height:1px; background:rgba(74,32,0,0.12); }
+  .divider-dot { width:4px; height:4px; border-radius:50%; background:var(--caramel); opacity:0.45; }
+
+  /* Steps indicator */
+  .steps { display:flex; gap:8px; justify-content:center; margin-bottom:28px; }
+  .step-dot {
+    width:8px; height:8px; border-radius:50%;
+    background:rgba(74,32,0,0.15);
+    transition:all 0.3s ease;
+  }
+  .step-dot.active { background:var(--caramel); transform:scale(1.3); }
+  .step-dot.done { background:var(--green); }
+
+  .question {
+    font-family:'Playfair Display',serif;
+    font-size:20px; font-weight:700; color:var(--espresso);
+    line-height:1.4; margin-bottom:26px; text-align:center;
+  }
+
+  /* Score */
+  .score-grid { display:flex; gap:5px; margin-bottom:10px; flex-wrap:wrap; justify-content:center; }
+  .score-btn {
+    width:43px; height:43px; border-radius:12px;
+    border:2px solid rgba(74,32,0,0.13);
+    background:var(--milk); color:var(--coffee);
+    font-family:'DM Sans',sans-serif; font-size:15px; font-weight:500;
+    cursor:pointer; transition:all 0.18s ease; flex-shrink:0;
+  }
+  .score-btn:hover { border-color:var(--caramel); background:var(--cream); transform:translateY(-2px); box-shadow:0 4px 12px rgba(192,112,48,0.2); }
+  .score-btn.selected { border-color:transparent; color:white; transform:translateY(-3px) scale(1.1); box-shadow:0 6px 18px rgba(0,0,0,0.22); }
+  .score-btn.detractor.selected { background:var(--red); }
+  .score-btn.passive.selected   { background:var(--amber); }
+  .score-btn.promoter.selected  { background:var(--green); }
+  .score-labels { display:flex; justify-content:space-between; font-size:11px; color:var(--coffee); opacity:0.55; margin-bottom:0; padding:0 2px; }
+
+  .category-badge {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 14px; border-radius:99px;
+    font-size:12px; font-weight:500; margin-bottom:0;
+    animation: fadeIn 0.3s ease both;
+  }
+  .badge-detractor { background:#fdecea; color:var(--red); border:1px solid #f5c6c2; }
+  .badge-passive   { background:#fef6e4; color:var(--amber); border:1px solid #f5dfa0; }
+  .badge-promoter  { background:#eafaf1; color:var(--green); border:1px solid #b8e8cc; }
+
+  /* Form fields */
+  .field-group { margin-bottom:16px; animation:fadeIn 0.35s ease both; }
+  .field-label { font-size:12px; font-weight:500; color:var(--coffee); margin-bottom:7px; display:block; letter-spacing:0.3px; }
+  .field-label .req { color:var(--caramel); }
+
+  input[type=text], input[type=tel], select, textarea {
+    width:100%; border:2px solid rgba(74,32,0,0.14);
+    border-radius:12px; background:var(--milk);
+    padding:12px 14px; font-family:'DM Sans',sans-serif;
+    font-size:14px; color:var(--espresso); outline:none;
+    transition:border-color 0.2s, background 0.2s;
+  }
+  input:focus, select:focus, textarea:focus { border-color:var(--caramel); background:var(--foam); }
+  input::placeholder, textarea::placeholder { color:rgba(74,32,0,0.3); }
+  select { appearance:none; cursor:pointer; }
+  select option { background:var(--foam); color:var(--espresso); }
+  textarea { resize:none; height:80px; }
+
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+  /* Buttons */
+  .btn-primary {
+    width:100%; padding:15px; background:var(--espresso);
+    color:var(--cream); border:none; border-radius:14px;
+    font-family:'DM Sans',sans-serif; font-size:15px; font-weight:500;
+    cursor:pointer; margin-top:20px; transition:all 0.2s;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn-primary:hover:not(:disabled) { background:var(--dark-roast); transform:translateY(-1px); box-shadow:0 8px 24px rgba(0,0,0,0.28); }
+  .btn-primary:disabled { opacity:0.38; cursor:not-allowed; }
+  .btn-back {
+    background:none; border:none; color:var(--caramel);
+    font-family:'DM Sans',sans-serif; font-size:13px; cursor:pointer;
+    padding:8px 0; text-align:center; width:100%; margin-top:8px;
+    transition:opacity 0.2s;
+  }
+  .btn-back:hover { opacity:0.7; }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+  /* Thank you */
+  .thankyou { text-align:center; animation:fadeIn 0.5s ease both; }
+  .ty-icon { font-size:60px; display:block; margin-bottom:18px; animation:pop 0.5s 0.1s cubic-bezier(0.34,1.56,0.64,1) both; }
+  .ty-score {
+    display:inline-block; background:var(--espresso); color:var(--cream);
+    font-family:'Playfair Display',serif; font-size:46px; font-weight:900;
+    width:90px; height:90px; line-height:90px;
+    border-radius:22px; margin-bottom:18px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.25);
+  }
+  .ty-score.detractor { background:var(--red); }
+  .ty-score.passive   { background:var(--amber); }
+  .ty-score.promoter  { background:var(--green); }
+  .thankyou h2 { font-family:'Playfair Display',serif; font-size:26px; font-weight:900; color:var(--espresso); margin-bottom:10px; }
+  .thankyou p { font-size:14px; color:var(--coffee); line-height:1.7; max-width:340px; margin:0 auto 24px; }
+  .btn-restart {
+    background:none; border:2px solid rgba(74,32,0,0.18); color:var(--coffee);
+    padding:10px 24px; border-radius:10px; font-family:'DM Sans',sans-serif;
+    font-size:13px; cursor:pointer; transition:all 0.2s;
+  }
+  .btn-restart:hover { border-color:var(--caramel); color:var(--caramel); }
+
+  /* Sending overlay */
+  .sending { text-align:center; padding:32px 0; animation:fadeIn 0.3s ease both; }
+  .spinner {
+    width:40px; height:40px; border:3px solid rgba(74,32,0,0.1);
+    border-top-color:var(--caramel); border-radius:50%;
+    animation:spin 0.8s linear infinite; margin:0 auto 16px;
+  }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .sending p { font-size:14px; color:var(--coffee); }
+
+  /* Error */
+  .error-msg { color:var(--red); font-size:12px; margin-top:6px; display:none; }
+
+  .footer { text-align:center; margin-top:20px; font-size:11px; color:rgba(255,255,255,0.18); letter-spacing:1px; }
+
+  @media(max-width:440px) {
+    .card { padding:36px 22px; }
+    .score-btn { width:37px; height:37px; font-size:13px; }
+    .row2 { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="card" id="mainCard">
+
+    <div class="logo-area">
+      <div class="logo-icon">☕</div>
+      <div class="brand">Mais <span>1</span> Café</div>
+      <div class="tagline">Teresina · Avalie sua experiência</div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-dot"></div><div class="divider-line"></div></div>
+
+    <div class="steps" id="stepsIndicator">
+      <div class="step-dot active" id="dot0"></div>
+      <div class="step-dot" id="dot1"></div>
+      <div class="step-dot" id="dot2"></div>
+    </div>
+
+    <!-- STEP 0: NPS Score -->
+    <div id="step0">
+      <p class="question">Em uma escala de 0 a 10, qual a chance de você recomendar o Mais 1 Café a um amigo ou familiar?</p>
+      <div class="score-grid" id="scoreGrid"></div>
+      <div class="score-labels"><span>😕 Não recomendaria</span><span>😍 Com certeza!</span></div>
+      <div id="badgeArea" style="margin-top:14px;min-height:34px;text-align:center;"></div>
+      <button class="btn-primary" id="btnNext0" disabled onclick="goStep(1)">Continuar →</button>
+    </div>
+
+    <!-- STEP 1: Personal info -->
+    <div id="step1" style="display:none; animation:fadeIn 0.4s ease both;">
+      <p class="question" style="font-size:17px;">Quase lá! Nos conta um pouco sobre você</p>
+      <div class="field-group">
+        <label class="field-label">Nome <span class="req">*</span></label>
+        <input type="text" id="fieldNome" placeholder="Seu nome completo">
+        <div class="error-msg" id="errNome">Por favor, informe seu nome.</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">WhatsApp / Telefone</label>
+        <input type="tel" id="fieldTel" placeholder="(86) 9 0000-0000">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Como nos conheceu? <span class="req">*</span></label>
+        <select id="fieldOrigem">
+          <option value="">Selecione uma opção…</option>
+          <option value="Instagram">Instagram</option>
+          <option value="TikTok">TikTok</option>
+          <option value="Google Maps">Google Maps</option>
+          <option value="Indicação de amigos">Indicação de amigos</option>
+          <option value="iFood">iFood</option>
+          <option value="Passando pela rua">Passando pela rua</option>
+          <option value="Já era cliente">Já era cliente da franquia</option>
+          <option value="Outro">Outro</option>
+        </select>
+        <div class="error-msg" id="errOrigem">Por favor, selecione uma opção.</div>
+      </div>
+      <button class="btn-primary" onclick="goStep(2)">Continuar →</button>
+      <button class="btn-back" onclick="goStep(0)">← Voltar</button>
+    </div>
+
+    <!-- STEP 2: Comment -->
+    <div id="step2" style="display:none; animation:fadeIn 0.4s ease both;">
+      <p class="question" style="font-size:17px;">Quer deixar um comentário? <span style="font-size:14px;font-weight:400;font-family:'DM Sans',sans-serif;color:var(--coffee);opacity:0.7;">(opcional)</span></p>
+      <div class="field-group">
+        <label class="field-label">O que motivou sua nota?</label>
+        <textarea id="fieldComentario" placeholder="Conte o que mais gostou, ou o que poderíamos melhorar…"></textarea>
+      </div>
+      <button class="btn-primary" onclick="submitSurvey()">Enviar avaliação ✓</button>
+      <button class="btn-back" onclick="goStep(1)">← Voltar</button>
+    </div>
+
+    <!-- Sending -->
+    <div id="stepSending" style="display:none;">
+      <div class="sending">
+        <div class="spinner"></div>
+        <p>Enviando sua avaliação…</p>
+      </div>
+    </div>
+
+    <!-- Thank you -->
+    <div id="stepThankyou" style="display:none;">
+      <div class="thankyou">
+        <span class="ty-icon" id="tyIcon">🙏</span>
+        <div class="ty-score" id="tyScore">—</div>
+        <h2 id="tyTitle">Obrigado!</h2>
+        <p id="tyMsg">Sua avaliação foi registrada.</p>
+        <button class="btn-restart" onclick="restart()">← Nova avaliação</button>
+      </div>
+    </div>
+
+  </div>
+  <div class="footer">MAIS 1 CAFÉ TERESINA · NPS</div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIGURAÇÃO — preencha após criar o Apps Script
+// ══════════════════════════════════════════════
+const APPS_SCRIPT_URL = "COLE_AQUI_A_URL_DO_APPS_SCRIPT";
+// ══════════════════════════════════════════════
+
+let selectedScore = null;
+let currentStep = 0;
+
+const tyMessages = {
+  detractor: { icon:'😔', title:'Obrigado pela honestidade!', msg:'Ficamos tristes que a experiência não foi a esperada. Sua opinião nos ajuda a melhorar — esperamos te surpreender na próxima visita.' },
+  passive:   { icon:'😊', title:'Obrigado pelo feedback!', msg:'Queremos muito conquistar uma nota máxima da sua parte. Até a próxima visita!' },
+  promoter:  { icon:'🤩', title:'Você é incrível!', msg:'Que alegria! Clientes como você são o coração do Mais 1 Café. Conta pra seus amigos — o café está esperando! ☕' }
+};
+
+function getCategory(n) {
+  if (n <= 6) return 'detractor';
+  if (n <= 8) return 'passive';
+  return 'promoter';
+}
+
+// Build score buttons
+const grid = document.getElementById('scoreGrid');
+for (let i = 0; i <= 10; i++) {
+  const btn = document.createElement('button');
+  btn.className = `score-btn ${getCategory(i)}`;
+  btn.textContent = i;
+  btn.dataset.score = i;
+  btn.onclick = () => selectScore(i);
+  grid.appendChild(btn);
+}
+
+function selectScore(n) {
+  selectedScore = n;
+  document.querySelectorAll('.score-btn').forEach((b,i) => {
+    b.classList.toggle('selected', i === n);
+  });
+  const cat = getCategory(n);
+  const labels = { detractor:'😔 Detrator · Nota 0–6', passive:'😐 Neutro · Nota 7–8', promoter:'😍 Promotor · Nota 9–10' };
+  const cls    = { detractor:'badge-detractor', passive:'badge-passive', promoter:'badge-promoter' };
+  document.getElementById('badgeArea').innerHTML =
+    `<span class="category-badge ${cls[cat]}">${labels[cat]}</span>`;
+  document.getElementById('btnNext0').disabled = false;
+}
+
+function goStep(n) {
+  // Validate step 1
+  if (n === 2) {
+    const nome = document.getElementById('fieldNome').value.trim();
+    const origem = document.getElementById('fieldOrigem').value;
+    let ok = true;
+    document.getElementById('errNome').style.display = nome ? 'none' : 'block'; if (!nome) ok = false;
+    document.getElementById('errOrigem').style.display = origem ? 'none' : 'block'; if (!origem) ok = false;
+    if (!ok) return;
+  }
+  currentStep = n;
+  ['step0','step1','step2','stepSending','stepThankyou'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  document.getElementById('step'+n).style.display = 'block';
+  // Update dots
+  for (let i=0; i<3; i++) {
+    const d = document.getElementById('dot'+i);
+    d.classList.remove('active','done');
+    if (i < n) d.classList.add('done');
+    else if (i === n) d.classList.add('active');
+  }
+}
+
+async function submitSurvey() {
+  ['step0','step1','step2'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('stepsIndicator').style.display = 'none';
+  document.getElementById('stepSending').style.display = 'block';
+
+  const payload = {
+    score: selectedScore,
+    categoria: getCategory(selectedScore),
+    nome: document.getElementById('fieldNome').value.trim(),
+    telefone: document.getElementById('fieldTel').value.trim(),
+    origem: document.getElementById('fieldOrigem').value,
+    comentario: document.getElementById('fieldComentario').value.trim(),
+    timestamp: new Date().toLocaleString('pt-BR', {timeZone:'America/Fortaleza'})
+  };
+
+  try {
+    if (APPS_SCRIPT_URL !== "COLE_AQUI_A_URL_DO_APPS_SCRIPT") {
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }
+    // Save locally too (for admin panel demo)
+    const saved = JSON.parse(localStorage.getItem('nps_responses') || '[]');
+    saved.push(payload);
+    localStorage.setItem('nps_responses', JSON.stringify(saved));
+  } catch(e) {
+    const saved = JSON.parse(localStorage.getItem('nps_responses') || '[]');
+    saved.push(payload);
+    localStorage.setItem('nps_responses', JSON.stringify(saved));
+  }
+
+  document.getElementById('stepSending').style.display = 'none';
+  showThankyou(payload);
+}
+
+function showThankyou(p) {
+  const cat = p.categoria;
+  const m = tyMessages[cat];
+  document.getElementById('tyIcon').textContent = m.icon;
+  document.getElementById('tyScore').textContent = p.score;
+  document.getElementById('tyScore').className = `ty-score ${cat}`;
+  document.getElementById('tyTitle').textContent = m.title;
+  document.getElementById('tyMsg').textContent = m.msg;
+  document.getElementById('stepThankyou').style.display = 'block';
+}
+
+function restart() {
+  selectedScore = null;
+  document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('badgeArea').innerHTML = '';
+  document.getElementById('btnNext0').disabled = true;
+  document.getElementById('fieldNome').value = '';
+  document.getElementById('fieldTel').value = '';
+  document.getElementById('fieldOrigem').value = '';
+  document.getElementById('fieldComentario').value = '';
+  document.getElementById('stepsIndicator').style.display = 'flex';
+  ['stepThankyou','step1','step2','stepSending'].forEach(id => document.getElementById(id).style.display='none');
+  goStep(0);
+}
+</script>
+</body>
+</html>
